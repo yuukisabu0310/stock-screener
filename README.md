@@ -49,9 +49,9 @@ EDINET_API_KEY=YOUR_API_KEY
 }
 ```
 
-**注意**: 
+- **日付の省略**: `start_date` または `end_date` が未設定・空文字の場合は、**両方とも日本時間（JST）の本日**で取得します。日次実行で「本日分だけ」取得したい場合は、空文字 `""` にしておくかキーを省略できます。
 - EDINET APIキーは[EDINET API利用登録](https://disclosure.edinet-fsa.go.jp/guide/guide_api.html)から取得してください。
-- APIキーは `.env` ファイルまたは環境変数 `EDINET_API_KEY` から読み込まれます（優先順位: 環境変数 > .envファイル）。
+- APIキーは `.env` または環境変数 `EDINET_API_KEY` から読み込まれます（優先: 環境変数 > .env）。
 
 ### 実行方法
 
@@ -76,12 +76,11 @@ python main.py
 2. **手動実行**
    - Actionsタブから「EDINET XBRL Download」ワークフローを選択
    - 「Run workflow」をクリック
-   - 開始日・終了日を指定して実行
+   - 開始日・終了日を指定して実行（ワークフロー入力で上書き可能）
 
-3. **自動実行**
+3. **自動実行（日次）**
    - 毎日午前3時（JST）に自動実行されます
-
-**注意**: APIキーは `.env` ファイルまたは環境変数 `EDINET_API_KEY` から読み込まれます（優先順位: 環境変数 > .envファイル）。
+   - 実行時は `config/settings.json.example` を `config/settings.json` にコピーして使用します。example で `start_date` / `end_date` を空にしておくと、**本日（JST）のみ**取得します。
 
 ### ディレクトリ構造
 
@@ -101,7 +100,8 @@ logs/
  └─ edinet_download.log
 
 config/
- └─ settings.json
+ ├─ settings.json          # 実設定（Git管理外）
+ └─ settings.json.example  # テンプレート（日次実行時にコピー元）
 
 .env
 .env.example
@@ -112,8 +112,6 @@ config/
 以下の条件を満たす書類のみを取得します：
 
 - `formCode == "030000"`（有価証券報告書）
-- `ordinanceCode == "010"`（企業）
-- `docTypeCode == "120"`（通常提出）
 
 ### ログ出力
 

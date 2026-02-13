@@ -6,8 +6,16 @@ import logging
 import os
 from pathlib import Path
 from typing import Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
+
+# 日本標準時（JST = UTC+9）
+JST = timezone(timedelta(hours=9))
+
+
+def get_today_jst() -> str:
+    """日本時間（JST）の本日の日付を YYYY-MM-DD で返す"""
+    return datetime.now(JST).strftime("%Y-%m-%d")
 
 
 def setup_logging(log_dir: Path) -> logging.Logger:
@@ -81,10 +89,17 @@ def load_settings(config_path: Path, env_path: Path = None) -> Dict[str, Any]:
     
     # 環境変数からAPIキーを取得（.envファイルから読み込まれた値、または既存の環境変数）
     env_api_key = os.getenv('EDINET_API_KEY')
-    
     if env_api_key:
         settings['api_key'] = env_api_key
-    
+
+    # start_date / end_date が未設定・空の場合は両方とも本日（JST）にする
+    start_date = settings.get("start_date")
+    end_date = settings.get("end_date")
+    if not start_date or not str(start_date).strip() or not end_date or not str(end_date).strip():
+        today = get_today_jst()
+        settings["start_date"] = today
+        settings["end_date"] = today
+
     return settings
 
 
