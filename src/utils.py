@@ -102,6 +102,14 @@ def load_settings(config_path: Path, env_path: Path = None) -> Dict[str, Any]:
         settings["start_date"] = today
         settings["end_date"] = today
 
+    # 環境変数で上書き（workflow_dispatch の入力など）
+    env_start = os.getenv("START_DATE")
+    env_end = os.getenv("END_DATE")
+    if env_start and str(env_start).strip():
+        settings["start_date"] = str(env_start).strip()
+    if env_end and str(env_end).strip():
+        settings["end_date"] = str(env_end).strip()
+
     return settings
 
 
