@@ -58,6 +58,7 @@ class XBRLParser:
         self._path = Path(xbrl_path)
         if not self._path.is_file():
             raise FileNotFoundError(f"XBRL file not found: {self._path}")
+        self._root: etree._Element | None = None
 
     def parse(self) -> dict[str, Any]:
         """
@@ -80,6 +81,7 @@ class XBRLParser:
             raise
 
         root = tree.getroot()
+        self._root = root
         ns_to_prefix = _ns_to_prefix_map(root)
 
         # schemaRef から taxonomy_version（YYYY-MM-DD）を抽出
@@ -134,3 +136,13 @@ class XBRLParser:
             "taxonomy_version": taxonomy_version,
             "facts": facts,
         }
+
+    @property
+    def root(self) -> etree._Element:
+        """
+        パース済みのXBRLルート要素を返す。
+        parse()を実行後にアクセス可能。
+        """
+        if self._root is None:
+            raise RuntimeError("parse()を先に実行してください")
+        return self._root
