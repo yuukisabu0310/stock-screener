@@ -37,7 +37,7 @@ jobs:
       # 5️⃣ financial-dataset clone
       - name: Clone dataset repository
         run: |
-          git clone git@github.com:<yourname>/financial-dataset.git dataset
+          git clone git@github.com:yuukisabu0310/financial-dataset.git dataset
 
       # 6️⃣ DATASET_PATH 環境変数
       - name: Set DATASET_PATH
