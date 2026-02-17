@@ -41,13 +41,31 @@ jobs:
         run: |
           cp config/settings.yaml.example config/settings.yaml
       
+      - name: Set date range for schedule execution
+        if: github.event_name == 'schedule'
+        run: |
+          # スケジュール実行時は昨日1日分を取得（JST基準）
+          # UTC 18:00 = JST 03:00なので、UTC基準で昨日を計算
+          YESTERDAY=$(date -u -d 'yesterday' +'%Y-%m-%d')
+          echo "START_DATE=${YESTERDAY}" >> $GITHUB_ENV
+          echo "END_DATE=${YESTERDAY}" >> $GITHUB_ENV
+          echo "Scheduled execution: downloading data for ${YESTERDAY} (UTC)"
+      
       - name: Run EDINET downloader
         env:
           EDINET_API_KEY: ${{ secrets.EDINET_API_KEY }}
-          START_DATE: ${{ github.event.inputs.start_date != '' && github.event.inputs.start_date || '' }}
-          END_DATE: ${{ github.event.inputs.end_date != '' && github.event.inputs.end_date || '' }}
+          START_DATE: ${{ github.event.inputs.start_date != '' && github.event.inputs.start_date || env.START_DATE != '' && env.START_DATE || '' }}
+          END_DATE: ${{ github.event.inputs.end_date != '' && github.event.inputs.end_date || env.END_DATE != '' && env.END_DATE || '' }}
         run: |
           python main.py
+      
+      - name: Ensure data directory structure
+        if: always()
+        run: |
+          # ダウンロードが0件でもディレクトリ参照エラーを防ぐため、ディレクトリを強制作成
+          mkdir -p data/edinet/raw_xbrl
+          mkdir -p data/edinet/raw_zip
+          echo "Data directory structure ensured"
       
       - name: Upload logs
         if: always()

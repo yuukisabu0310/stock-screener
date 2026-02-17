@@ -33,7 +33,16 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      # 4️⃣ Download XBRL artifacts from edinet-download workflow
+      # 4️⃣ Ensure data directory structure exists
+      - name: Ensure data directory structure
+        if: github.event_name == 'workflow_run'
+        run: |
+          # アーティファクトダウンロード前にディレクトリ構造を確保
+          mkdir -p data/edinet/raw_xbrl
+          mkdir -p data/edinet/raw_zip
+          echo "Data directory structure created"
+
+      # 4.5️⃣ Download XBRL artifacts from edinet-download workflow
       - name: Download XBRL data artifacts
         if: github.event_name == 'workflow_run'
         continue-on-error: true
@@ -42,9 +51,9 @@ jobs:
           name: edinet-data
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
-          path: .
+          path: data/
 
-      # 4.5️⃣ Verify downloaded artifacts
+      # 4.6️⃣ Verify downloaded artifacts
       - name: Verify downloaded artifacts
         if: github.event_name == 'workflow_run'
         run: |
