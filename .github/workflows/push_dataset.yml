@@ -5,6 +5,10 @@ on:
   push:
     branches:
       - main
+  workflow_run:
+    workflows: ["EDINET XBRL Download"]
+    types:
+      - completed
 
 jobs:
   build-and-push:
@@ -26,7 +30,17 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      # 4️⃣ SSH設定（Deploy Key）
+      # 4️⃣ Download XBRL artifacts from edinet-download workflow
+      - name: Download XBRL data artifacts
+        if: github.event_name == 'workflow_run'
+        uses: actions/download-artifact@v4
+        with:
+          name: edinet-data
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+          if-no-artifact-found: warn
+
+      # 5️⃣ SSH設定（Deploy Key）
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -34,23 +48,23 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan github.com >> ~/.ssh/known_hosts
 
-      # 5️⃣ financial-dataset clone
+      # 6️⃣ financial-dataset clone
       - name: Clone dataset repository
         run: |
           git clone git@github.com:yuukisabu0310/financial-dataset.git dataset
 
-      # 6️⃣ DATASET_PATH 環境変数
+      # 7️⃣ DATASET_PATH 環境変数
       - name: Set DATASET_PATH
         run: echo "DATASET_PATH=dataset" >> $GITHUB_ENV
 
-      # 7️⃣ パーサー実行
+      # 8️⃣ パーサー実行
       - name: Run parser pipeline
         env:
           DATASET_PATH: dataset
         run: |
           python scripts/process_all.py
 
-      # 8️⃣ dataset commit & push
+      # 9️⃣ dataset commit & push
       - name: Commit and Push dataset
         run: |
           cd dataset
