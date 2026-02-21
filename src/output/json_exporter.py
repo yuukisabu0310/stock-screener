@@ -44,6 +44,14 @@ FACT_KEYS = frozenset({
 MARKET_SECTION_KEYS = frozenset({"market", "valuation"})
 
 
+def normalize_security_code(raw: str) -> str:
+    """EDINET由来の銘柄コードを正規化する。5桁かつ末尾が'0'の場合のみ末尾1桁を削除。"""
+    s = str(raw).strip()
+    if len(s) == 5 and s.endswith("0"):
+        return s[:4]
+    return s
+
+
 def _validate_metrics(metrics: dict[str, Any], label: str, security_code: str) -> None:
     """
     出力前バリデーション。問題があればログに警告を出力する。
@@ -165,12 +173,14 @@ class JSONExporter:
             ValueError: security_code, report_type, data_version が存在しない、
                         またはバリデーション違反の場合。
         """
-        security_code = financial_dict.get("security_code")
-        if not security_code or not str(security_code).strip():
+        raw_code = financial_dict.get("security_code")
+        if not raw_code or not str(raw_code).strip():
             raise ValueError(
                 "security_code が取得できません。"
                 "有価証券報告書・四半期報告書以外の書類の可能性があります。"
             )
+
+        sc = normalize_security_code(str(raw_code))
 
         fiscal_year_end = financial_dict.get("fiscal_year_end")
         report_type = financial_dict.get("report_type")
@@ -187,8 +197,6 @@ class JSONExporter:
                 "data_version が生成できませんでした（fiscal_year_end が欠損している可能性があります）。"
                 "有価証券報告書・四半期報告書以外の書類は処理対象外です。"
             )
-
-        sc = str(security_code)
 
         current_metrics = self._sanitize_metrics(financial_dict.get("current_year", {}))
         prior_metrics = self._sanitize_metrics(financial_dict.get("prior_year", {}))

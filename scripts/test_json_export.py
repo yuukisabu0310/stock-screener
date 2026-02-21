@@ -22,7 +22,7 @@ if env_path.exists():
 if "DATASET_PATH" not in os.environ:
     os.environ["DATASET_PATH"] = "./financial-dataset"
 
-from output.json_exporter import JSONExporter, DERIVED_KEYS
+from output.json_exporter import JSONExporter, DERIVED_KEYS, normalize_security_code
 
 DERIVED_AND_MARKET_KEYS = DERIVED_KEYS | {
     "stock_price", "shares_outstanding", "dividend_per_share", "market_cap",
@@ -95,6 +95,35 @@ if __name__ == "__main__":
     has_null = any(v is None for v in all_values)
     checks.append(("null値なし", not has_null))
 
+    # security_code 正規化テスト
+    sc_cases = [
+        ("48270", "4827"),   # 5桁末尾0 → 4桁
+        ("4827", "4827"),    # 4桁 → そのまま
+        ("00100", "0010"),   # 先頭ゼロ保持、末尾0のみ削除
+        ("12345", "12345"),  # 5桁末尾非0 → そのまま
+        ("100", "100"),      # 3桁 → そのまま
+    ]
+    sc_ok = True
+    for raw, expected in sc_cases:
+        actual = normalize_security_code(raw)
+        if actual != expected:
+            print(f"[NG] normalize_security_code({raw!r}) = {actual!r}, expected {expected!r}")
+            sc_ok = False
+    checks.append(("security_code正規化ロジック", sc_ok))
+
+    dummy_5digit = {
+        "doc_id": "TEST_5DIGIT",
+        "security_code": "48270",
+        "fiscal_year_end": "2025-03-31",
+        "report_type": "annual",
+        "current_year": {"metrics": {"equity": 100.0}},
+    }
+    path_5d = exporter.export(dummy_5digit)
+    with open(path_5d, "r", encoding="utf-8") as f:
+        loaded_5d = json.load(f)
+    checks.append(("5桁→4桁正規化(JSON出力)", loaded_5d["security_code"] == "4827"))
+    checks.append(("5桁→4桁正規化(ファイル名)", Path(path_5d).stem == "4827"))
+
     # prior_yearが空の場合のテスト
     dummy_no_prior = {
         "doc_id": "TEST_NO_PRIOR",
@@ -126,9 +155,10 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # テスト用ファイルの後始末
-    test_path = Path(path2)
-    if test_path.exists():
-        test_path.unlink()
-        parent = test_path.parent
-        if parent.exists() and not any(parent.iterdir()):
-            parent.rmdir()
+    for p in [path2, path_5d]:
+        test_path = Path(p)
+        if test_path.exists():
+            test_path.unlink()
+            parent = test_path.parent
+            if parent.exists() and not any(parent.iterdir()):
+                parent.rmdir()

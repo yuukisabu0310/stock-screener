@@ -201,7 +201,7 @@ financial-dataset には**財務Factのみ**を保存する。Derived指標・nu
   "data_version": "2025FY",
   "generated_at": "2026-02-18T12:00:00Z",
   "doc_id": "S100W67S",
-  "security_code": "48270",
+  "security_code": "4827",
   "fiscal_year_end": "2025-03-31",
   "report_type": "annual",
   "current_year": {
@@ -233,6 +233,7 @@ financial-dataset には**財務Factのみ**を保存する。Derived指標・nu
 - **null出力禁止**: 値が取得できなかった項目はキーごと省略
 - **空prior_year省略**: prior_yearに有効なFactがなければキー自体を出力しない
 - **Derived禁止**: ROE/ROA/マージン/成長率等の再計算可能な値はvaluation-engineの責務
+- **security_code正規化**: 5桁かつ末尾"0"の場合のみ末尾1桁を削除（例: "48270" → "4827"）。rstrip/int変換は行わない
 
 ### Fact項目一覧
 
