@@ -2,9 +2,6 @@ name: Generate and Push Dataset
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
   workflow_run:
     workflows: ["EDINET XBRL Download"]
     types:
