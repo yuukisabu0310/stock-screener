@@ -203,7 +203,7 @@ financial-dataset には**財務Factのみ**を保存する。Derived指標は�
 
 ```json
 {
-  "schema_version": "2.0",
+  "schema_version": "3.0",
   "engine_version": "1.0.0",
   "data_version": "2025FY",
   "generated_at": "2026-02-21T06:37:44Z",
@@ -224,8 +224,22 @@ financial-dataset には**財務Factのみ**を保存する。Derived指標は�
       "equity": 81630000000.0,
       "net_sales": 251533000000.0,
       "operating_income": 7381000000.0,
+      "ordinary_income": 7200000000.0,
       "net_income_attributable_to_parent": 5870000000.0,
-      "total_number_of_issued_shares": 64200000
+      "total_number_of_issued_shares": 64200000,
+      "cash_and_equivalents": 15000000000.0,
+      "operating_cash_flow": 8500000000.0,
+      "depreciation": 3200000000.0,
+      "dividends_per_share": 50.0,
+      "short_term_borrowings": 5000000000.0,
+      "current_portion_of_long_term_borrowings": 2000000000.0,
+      "commercial_papers": null,
+      "current_portion_of_bonds": null,
+      "short_term_lease_obligations": 100000000.0,
+      "bonds_payable": 10000000000.0,
+      "long_term_borrowings": 15000000000.0,
+      "long_term_lease_obligations": 300000000.0,
+      "lease_obligations": null
     }
   }
 }
@@ -253,15 +267,44 @@ financial-dataset には**財務Factのみ**を保存する。Derived指標は�
 
 ### Fact項目一覧
 
+#### 基礎財務項目
+
 | キー | 出典 | 説明 |
 |---|---|---|
-| `total_assets` | BS | 総資産 |
-| `equity` | BS | 自己資本（shareholders_equity > equity > net_assets の優先順位で選択） |
-| `interest_bearing_debt` | BS | 有利子負債（XBRLタグ存在時のみ、内訳合算は行わない） |
-| `net_sales` | PL | 売上高 |
-| `operating_income` | PL | 営業利益 |
-| `net_income_attributable_to_parent` | PL | 親会社株主に帰属する当期純利益（IFRS対応。旧: profit_loss） |
-| `total_number_of_issued_shares` | BS | 発行済株式数（valuation-engineでEPS算出に使用） |
+| `total_assets` | BS | 総資産（JGAAP: `Assets` / IFRS: `Assets`）|
+| `equity` | BS | 自己資本（`ShareholdersEquity > EquityAttributableToOwnersOfParent > Equity > NetAssets` の優先順位）|
+| `net_sales` | PL | 売上高（JGAAP: `NetSales` / `OperatingRevenue1/2` / IFRS: `Revenue`）|
+| `operating_income` | PL | 営業利益（JGAAP: `OperatingIncome` / IFRS: `OperatingProfitLoss`）|
+| `ordinary_income` | PL | 経常利益（JGAAP特有。IFRSには概念なし）|
+| `net_income_attributable_to_parent` | PL | 親会社株主に帰属する当期純利益 |
+| `total_number_of_issued_shares` | DEI | 発行済株式数 |
+
+#### 分析用追加項目
+
+| キー | 出典 | 説明 |
+|---|---|---|
+| `cash_and_equivalents` | CF/BS | 現金及び現金同等物（`CashAndCashEquivalents > CashAndDeposits` の優先順位）|
+| `operating_cash_flow` | CF | 営業キャッシュ・フロー |
+| `depreciation` | CF | 減価償却費（`DepreciationAndAmortizationOpeCF > DepreciationSGA` の優先順位）|
+| `dividends_per_share` | DEI | 1株当たり配当額（個別ベース。NonConsolidated contextからも取得）|
+
+#### 有利子負債構成項目
+
+合算はvaluation-engineで実施（リース債務の含む/含まないを切り替え可能にするため）。
+
+| キー | 出典 | JGAAP タグ | 説明 |
+|---|---|---|---|
+| `short_term_borrowings` | BS | `ShortTermBorrowings` | 短期借入金 |
+| `current_portion_of_long_term_borrowings` | BS | `CurrentPortionOfLongTermBorrowings` | 1年内返済予定の長期借入金 |
+| `commercial_papers` | BS | `CommercialPapers` | コマーシャル・ペーパー |
+| `current_portion_of_bonds` | BS | `CurrentPortionOfBonds` | 1年内償還予定の社債 |
+| `short_term_lease_obligations` | BS | `LeaseObligationsCL` | 流動リース債務 |
+| `bonds_payable` | BS | `BondsPayable` | 社債 |
+| `long_term_borrowings` | BS | `LongTermBorrowings` | 長期借入金 |
+| `long_term_lease_obligations` | BS | `LeaseObligationsNCL` | 固定リース債務 |
+| `lease_obligations` | BS | `LeaseObligations` | リース債務（流動/固定が分離されていない場合）|
+
+IFRS企業では `Borrowings`（流動/非流動）、`LeaseLiabilities`（流動/非流動）からもマッピングする。
 
 ### 含めないデータ（レイヤー分離原則）
 
@@ -269,6 +312,8 @@ financial-dataset には**財務Factのみ**を保存する。Derived指標は�
 |---|---|---|
 | ROE / ROA / ROIC / マージン / 成長率 / CAGR | Derived（再計算可能） | valuation-engine |
 | FCF (営業CF + 投資CF) | Derived（CF合算計算値） | valuation-engine |
+| EPS (純利益 / 株数) | Derived（再計算可能） | valuation-engine |
+| 有利子負債合計 | Derived（構成項目の合算） | valuation-engine |
 | stock_price / volume | 市場Fact | market-dataset |
 | PER / PBR / PSR / PEG / dividend_yield | Derived（再計算可能） | valuation-engine |
 

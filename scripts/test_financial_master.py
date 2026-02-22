@@ -18,10 +18,17 @@ from normalizer.fact_normalizer import FactNormalizer
 from financial.financial_master import FinancialMaster
 
 FACT_KEYS = {
-    "total_assets", "equity", "interest_bearing_debt",
-    "net_sales", "operating_income",
+    "total_assets", "equity",
+    "net_sales", "operating_income", "ordinary_income",
     "net_income_attributable_to_parent",
     "total_number_of_issued_shares",
+    "cash_and_equivalents", "operating_cash_flow", "depreciation",
+    "dividends_per_share",
+    "short_term_borrowings", "current_portion_of_long_term_borrowings",
+    "commercial_papers", "current_portion_of_bonds",
+    "short_term_lease_obligations", "bonds_payable",
+    "long_term_borrowings", "long_term_lease_obligations",
+    "lease_obligations",
 }
 
 DERIVED_KEYS = {

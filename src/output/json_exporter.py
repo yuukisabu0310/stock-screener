@@ -12,6 +12,11 @@ schema_version 2.1:
   - current_year / prior_year に period (start/end) を追加
 schema_version 2.2:
   - EPS削除（再計算可能なためFactレイクに含めない。valuation-engineで算出）
+schema_version 3.0:
+  - タクソノミ仕様書ベースのマッピング拡充（JGAAP/IFRS対応）
+  - 追加: ordinary_income, cash_and_equivalents, operating_cash_flow, depreciation, dividends_per_share
+  - 追加: 有利子負債構成9項目（生データ保存、合算はvaluation-engineで実施）
+  - interest_bearing_debt を削除（構成項目の生データに置換）
 
 Schema changes must increment schema_version.
 data_version represents fiscal period identity, not generation timestamp.
@@ -35,7 +40,7 @@ from src import __version__
 
 logger = logging.getLogger(__name__)
 
-SCHEMA_VERSION = "2.0"  # 2.0: EPS削除（再計算可能なためFactレイクに含めない）
+SCHEMA_VERSION = "3.0"
 
 DERIVED_KEYS = frozenset({
     "roe", "roa", "roic", "operating_margin", "net_margin",
@@ -45,13 +50,30 @@ DERIVED_KEYS = frozenset({
     "free_cash_flow", "cagr",
     "profit_loss", "earnings_per_share",
     "earnings_per_share_basic", "earnings_per_share_diluted",
+    "interest_bearing_debt",
 })
 
 FACT_KEYS = frozenset({
-    "total_assets", "equity", "interest_bearing_debt",
-    "net_sales", "operating_income",
+    # 基礎財務項目
+    "total_assets", "equity",
+    "net_sales", "operating_income", "ordinary_income",
     "net_income_attributable_to_parent",
     "total_number_of_issued_shares",
+    # 分析用追加項目
+    "cash_and_equivalents",
+    "operating_cash_flow",
+    "depreciation",
+    "dividends_per_share",
+    # 有利子負債構成項目
+    "short_term_borrowings",
+    "current_portion_of_long_term_borrowings",
+    "commercial_papers",
+    "current_portion_of_bonds",
+    "short_term_lease_obligations",
+    "bonds_payable",
+    "long_term_borrowings",
+    "long_term_lease_obligations",
+    "lease_obligations",
 })
 
 VALID_ACCOUNTING_STANDARDS = frozenset({

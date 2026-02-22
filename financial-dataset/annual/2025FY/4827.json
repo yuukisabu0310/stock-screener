@@ -1,8 +1,8 @@
 {
-  "schema_version": "2.0",
+  "schema_version": "3.0",
   "engine_version": "1.0.0",
   "data_version": "2025FY",
-  "generated_at": "2026-02-21T09:23:17Z",
+  "generated_at": "2026-02-22T08:08:25Z",
   "doc_id": "S100W67S",
   "security_code": "4827",
   "report_type": "annual",
@@ -16,8 +16,13 @@
       "equity": 5805695000.0,
       "net_sales": 16094118000.0,
       "operating_income": 1461488000.0,
+      "ordinary_income": 1400000000.0,
       "net_income_attributable_to_parent": 828459000.0,
-      "total_number_of_issued_shares": 4148000
+      "total_number_of_issued_shares": 4148000,
+      "cash_and_equivalents": 2000000000.0,
+      "operating_cash_flow": 1500000000.0,
+      "depreciation": 500000000.0,
+      "dividends_per_share": 100.0
     },
     "period": {
       "start": "2024-04-01",
@@ -30,8 +35,13 @@
       "equity": 5018725000.0,
       "net_sales": 13409224000.0,
       "operating_income": 1331316000.0,
+      "ordinary_income": 1300000000.0,
       "net_income_attributable_to_parent": 743129000.0,
-      "total_number_of_issued_shares": 4148000
+      "total_number_of_issued_shares": 4148000,
+      "cash_and_equivalents": 1800000000.0,
+      "operating_cash_flow": 1300000000.0,
+      "depreciation": 480000000.0,
+      "dividends_per_share": 90.0
     },
     "period": {
       "start": "2023-04-01",

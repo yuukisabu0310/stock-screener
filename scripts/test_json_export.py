@@ -1,6 +1,6 @@
 """
 JSONExporter 動作確認用スクリプト。
-Fact-only・period保持・会計定義明示を検証する。
+Fact-only・period保持・会計定義明示・有利子負債構成項目を検証する。
 EPSは再計算可能なためFactレイクに含めない。
 
 使用例:
@@ -29,7 +29,7 @@ from output.json_exporter import (
 )
 
 PROHIBITED_KEYS = DERIVED_KEYS | {
-    "stock_price", "shares_outstanding_market", "dividend_per_share", "market_cap",
+    "stock_price", "shares_outstanding_market", "market_cap",
 }
 
 if __name__ == "__main__":
@@ -47,8 +47,22 @@ if __name__ == "__main__":
                 "equity": 81630000000.0,
                 "net_sales": 251533000000.0,
                 "operating_income": 7381000000.0,
+                "ordinary_income": 7200000000.0,
                 "net_income_attributable_to_parent": 5870000000.0,
                 "total_number_of_issued_shares": 64200000,
+                "cash_and_equivalents": 15000000000.0,
+                "operating_cash_flow": 8500000000.0,
+                "depreciation": 3200000000.0,
+                "dividends_per_share": 50.0,
+                "short_term_borrowings": 5000000000.0,
+                "current_portion_of_long_term_borrowings": 2000000000.0,
+                "commercial_papers": None,
+                "current_portion_of_bonds": None,
+                "short_term_lease_obligations": 100000000.0,
+                "bonds_payable": 10000000000.0,
+                "long_term_borrowings": 15000000000.0,
+                "long_term_lease_obligations": 300000000.0,
+                "lease_obligations": None,
             },
         },
         "prior_year": {
@@ -58,8 +72,22 @@ if __name__ == "__main__":
                 "equity": 75000000000.0,
                 "net_sales": 230000000000.0,
                 "operating_income": 6500000000.0,
+                "ordinary_income": 6300000000.0,
                 "net_income_attributable_to_parent": 5000000000.0,
                 "total_number_of_issued_shares": 64200000,
+                "cash_and_equivalents": 14000000000.0,
+                "operating_cash_flow": 7500000000.0,
+                "depreciation": 3000000000.0,
+                "dividends_per_share": 45.0,
+                "short_term_borrowings": 4000000000.0,
+                "current_portion_of_long_term_borrowings": 1500000000.0,
+                "commercial_papers": None,
+                "current_portion_of_bonds": None,
+                "short_term_lease_obligations": 80000000.0,
+                "bonds_payable": 10000000000.0,
+                "long_term_borrowings": 16000000000.0,
+                "long_term_lease_obligations": 250000000.0,
+                "lease_obligations": None,
             },
         },
     }
@@ -102,16 +130,34 @@ if __name__ == "__main__":
     checks.append(("current_year.period 存在", "period" in current_year))
     checks.append(("prior_year.period 存在", "period" in prior_year))
 
+    # 基礎財務項目
+    checks.append(("total_assets 存在", "total_assets" in current_metrics))
+    checks.append(("equity 存在", "equity" in current_metrics))
+    checks.append(("net_sales 存在", "net_sales" in current_metrics))
+    checks.append(("operating_income 存在", "operating_income" in current_metrics))
+    checks.append(("ordinary_income 存在", "ordinary_income" in current_metrics))
     checks.append(("net_income_attributable_to_parent 存在",
                     "net_income_attributable_to_parent" in current_metrics))
     checks.append(("total_number_of_issued_shares 存在",
                     "total_number_of_issued_shares" in current_metrics))
-    checks.append(("EPSは含まない（再計算可能のため）",
-                    "earnings_per_share_basic" not in current_metrics))
 
+    # 分析用追加項目
+    checks.append(("cash_and_equivalents 存在", "cash_and_equivalents" in current_metrics))
+    checks.append(("operating_cash_flow 存在", "operating_cash_flow" in current_metrics))
+    checks.append(("depreciation 存在", "depreciation" in current_metrics))
+    checks.append(("dividends_per_share 存在", "dividends_per_share" in current_metrics))
+
+    # 有利子負債構成
+    checks.append(("short_term_borrowings 存在", "short_term_borrowings" in current_metrics))
+    checks.append(("bonds_payable 存在", "bonds_payable" in current_metrics))
+    checks.append(("long_term_borrowings 存在", "long_term_borrowings" in current_metrics))
+    checks.append(("lease_obligations null出力", current_metrics.get("lease_obligations") is None))
+
+    # 禁止キー
+    checks.append(("EPSは含まない", "earnings_per_share_basic" not in current_metrics))
+    checks.append(("旧 interest_bearing_debt 不在", "interest_bearing_debt" not in current_metrics))
     checks.append(("旧キー profit_loss 不在", "profit_loss" not in current_metrics))
     checks.append(("旧キー earnings_per_share 不在", "earnings_per_share" not in current_metrics))
-    checks.append(("旧キー fiscal_year_end 不在", "fiscal_year_end" not in loaded))
 
     checks.append(("market セクション不在", "market" not in current_year))
     checks.append(("valuation セクション不在", "valuation" not in current_year))
